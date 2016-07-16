@@ -44,8 +44,20 @@ namespace vk
 		result.host_visible_coherent = VK_MAX_MEMORY_TYPES;
 
 		bool host_visible_cached = false;
-		u32  host_visible_vram_size = 0;
-		u32  device_local_vram_size = 0;
+		u64  host_visible_vram_size = 0;
+		u64  device_local_vram_size = 0;
+
+		LOG_ERROR(RSX, "BEGINNING HEAP DUMP: HEAP_COUNT = %d, TYPE_COUNT = %d", memory_properties.memoryHeapCount, memory_properties.memoryTypeCount);
+
+		for (u32 i = 0; i < memory_properties.memoryHeapCount; ++i)
+		{
+			LOG_ERROR(RSX, "HEAP INDEX %d, flags = %d, size= %ull", i, memory_properties.memoryHeaps[i].flags, memory_properties.memoryHeaps[i].size);
+		}
+
+		for (u32 i = 0; i < memory_properties.memoryTypeCount; ++i)
+		{
+			LOG_ERROR(RSX, "MEMORY TYPE %d, flags = %d, heap= %d", i, memory_properties.memoryTypes[i].propertyFlags, memory_properties.memoryTypes[i].heapIndex);
+		}
 
 		for (u32 i = 0; i < memory_properties.memoryTypeCount; i++)
 		{
@@ -77,8 +89,11 @@ namespace vk
 			}
 		}
 
+		LOG_ERROR(RSX, "SELECTED: Device Local = %d, Host_Visible = %d", result.device_local, result.host_visible_coherent);
+
 		if (result.device_local == VK_MAX_MEMORY_TYPES) throw EXCEPTION("GPU doesn't support device local memory");
 		if (result.host_visible_coherent == VK_MAX_MEMORY_TYPES) throw EXCEPTION("GPU doesn't support host coherent device local memory");
+		
 		return result;
 	}
 
