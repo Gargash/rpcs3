@@ -220,37 +220,51 @@ namespace vk
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.subresourceRange = range;
 
+		VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+		//I'm certain that some of these combinations are bogus, but thinking of all possible combinations is too much
+		//Using TOP_OF_PIPE stage does nothing as it blocks no reads/writes
+
 		switch (new_layout)
 		{
 		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+			dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
 		case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+			dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
 		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
 			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
 			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+			dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT; break;
 		}
 
 		switch (current_layout)
 		{
 		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+			src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
 		case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
+			src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT; break;
 		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+			src_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+			src_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+			src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT; break;
 		}
 
-		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(cmd, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,

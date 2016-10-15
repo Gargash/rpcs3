@@ -1438,7 +1438,7 @@ void VKGSRender::flip(int buffer)
 			barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 			barrier.image = target_image;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.subresourceRange = subres;
