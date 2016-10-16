@@ -214,8 +214,8 @@ namespace vk
 		barrier.newLayout = new_layout;
 		barrier.oldLayout = current_layout;
 		barrier.image = image;
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = 0;
+		barrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT|VK_ACCESS_MEMORY_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT|VK_ACCESS_MEMORY_READ_BIT;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.subresourceRange = range;
