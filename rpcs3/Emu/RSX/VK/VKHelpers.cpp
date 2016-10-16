@@ -220,7 +220,7 @@ namespace vk
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.subresourceRange = range;
 
-		VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
 		VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
 		//I'm certain that some of these combinations are bogus, but thinking of all possible combinations is too much
@@ -234,7 +234,7 @@ namespace vk
 		case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
 		case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
 			dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
+			barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT; break;
 		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
 			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
 		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
