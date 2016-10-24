@@ -792,8 +792,6 @@ bool GLGSRender::load_program()
 
 			if (m_fragment_buffer_hash == old_hash)
 				return true;
-			else
-				LOG_ERROR(RSX, "Fragment constants changed!");
 		}
 	}
 
