@@ -735,6 +735,16 @@ bool GLGSRender::load_program()
 	m_program = &m_prog_buffer.getGraphicPipelineState(vertex_program, fragment_program, nullptr);
 	m_program->use();
 
+	//Apps can write into the fragment program binary.
+	u32 fragment_constants_size = m_prog_buffer.get_fragment_constants_buffer_size(fragment_program);
+	std::vector<u8> fragment_constants_buf;
+
+	if (fragment_constants_size)
+	{
+		fragment_constants_buf.resize(fragment_constants_size);
+		m_prog_buffer.fill_fragment_constants_buffer({ reinterpret_cast<float*>(fragment_constants_buf.data()), gsl::narrow<int>(fragment_constants_size) }, fragment_program);
+	}
+
 	if (old_program == m_program && !m_transform_constants_dirty)
 	{
 		//This path is taken alot so the savings are tangible
@@ -769,12 +779,26 @@ bool GLGSRender::load_program()
 			m_transform_buffer_hash ^= std::hash<char>()(data[i]);
 
 		if (old_hash == m_transform_buffer_hash)
-			return true;
+		{
+			//Its likely that nothing changed since previous draw.
+			if (!fragment_constants_size)
+				return true;
+
+			old_hash = m_fragment_buffer_hash;
+			m_fragment_buffer_hash = 0;
+
+			for (int i = 0; i < fragment_constants_size; ++i)
+				m_fragment_buffer_hash ^= std::hash<char>()(fragment_constants_buf[i]);
+
+			if (m_fragment_buffer_hash == old_hash)
+				return true;
+			else
+				LOG_ERROR(RSX, "Fragment constants changed!");
+		}
 	}
 
 	m_transform_constants_dirty = false;
 
-	u32 fragment_constants_size = m_prog_buffer.get_fragment_constants_buffer_size(fragment_program);
 	fragment_constants_size = std::max(32U, fragment_constants_size);
 	u32 max_buffer_sz = 512 + 8192 + align(fragment_constants_size, m_uniform_buffer_offset_align);
 
@@ -814,7 +838,7 @@ bool GLGSRender::load_program()
 		mapping = m_uniform_ring_buffer->alloc_from_heap(fragment_constants_size, m_uniform_buffer_offset_align);
 		buf = static_cast<u8*>(mapping.first);
 		fragment_constants_offset = mapping.second;
-		m_prog_buffer.fill_fragment_constants_buffer({ reinterpret_cast<float*>(buf), gsl::narrow<int>(fragment_constants_size) }, fragment_program);
+		memcpy(buf, fragment_constants_buf.data(), fragment_constants_buf.size());
 	}
 
 	m_uniform_ring_buffer->bind_range(0, scale_offset_offset, 512);
